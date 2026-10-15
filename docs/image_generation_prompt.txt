@@ -1,0 +1,258 @@
+================================================================================
+BAANMITRA (বানমিত্ৰা) — IMAGE-GENERATION PROMPT PACK
+Technical architecture diagram · Hackyard Build 2026 · IIT Guwahati
+================================================================================
+
+HOW TO USE THIS FILE
+--------------------------------------------------------------------------------
+Section 1  = the main prompt. Paste into any image model (Midjourney / DALL·E 3 /
+             Ideogram / Flux / Leonardo / Imagen).
+Section 2  = tool-specific settings (aspect ratio, stylize, negative prompt).
+Section 3  = a 6-shot refinement prompt if the model "forgets" boxes or text.
+Section 4  = DETERMINISTIC alternative — if the image model garbles labels,
+             use the Mermaid / draw.io code in this section instead. Code-based
+             diagrams always render text perfectly.
+Section 5  = style tokens for a consistent look across multiple diagrams.
+
+
+================================================================================
+SECTION 1 — MAIN PROMPT (copy-paste everything between the lines)
+================================================================================
+---------------------------------------------------------------------------
+A polished, professional technical architecture diagram on a dark navy
+background (#0A1628) with rounded-rectangle panels, thin teal (#2DD4BF) and
+amber (#FBBF24) accent outlines, white bold labels, and muted grey-blue
+caption text (#93A4BC). Flat vector infographic style, clean sans-serif
+typography, generous whitespace, 16:9 landscape, high-end conference-slide
+quality, no photorealism, no gradients, no drop shadows, no 3D, no glow.
+
+TITLE BAR (top-left):
+"BaanMitra  বানমিত্ৰা — Technical Architecture · the last mile of India's
+flood early warning system"
+
+SIX HORIZONTAL LAYER BANDS, stacked top to bottom, each band with a narrow
+label strip on the left and component cards on the right. Thin arrows flow
+downward between layers; thin arrows flow upward in amber to show responses.
+
+LAYER 1 — "1 · DATA & SIGNAL SOURCES" (blue accents, 5 cards):
+  • "FLEWS bulletins — ASDMA / NESAC · asdma.gov.in · revenue-circle level ·
+    12–48 h lead time · 89% accuracy"
+  • "CWC Level Forecast — ffs.india-water.gov.in · 200 level stations +
+    150 inflow reservoirs"
+  • "CWC 7-day Advisory — aff.india-water.gov.in · basin-scale rainfall-runoff
+    model, 24×7"
+  • "IMD rainfall + radar — nowcasts, Doppler radar, district forecasts"
+  • "Open-Meteo · Flood Hub — independent cross-check · Google Flood
+    Forecasting API"
+
+LAYER 2 — "2 · INGESTION & NORMALISATION" (teal accents, 4 cards):
+  • "FLEWS parser — BeautifulSoup + pdfplumber → structured alert objects
+    (severity class, valid window)"
+  • "Feed pollers — httpx async clients → CWC / IMD / Open-Meteo JSON →
+    pydantic-typed models"
+  • "RiskEvent normaliser — {circle, village, river, level_vs_danger,
+    severity, valid_from/to, lead_time_h, source_refs[]}"
+  • "CAP listener — NDMA SACHET Common Alerting Protocol feed — consume,
+    never duplicate"
+
+LAYER 3 — "3 · INTELLIGENCE — AGENT37 SANDBOXES" (amber accents, 3 wide cards,
+each with a bulleted list):
+  • "Agent A · WATCHDOG (outbound)" with bullets:
+    "cron 15 min → rule engine + LLM reasoning (Claude / Gemini API";
+    "selects affected households from PostgreSQL → picks language per household";
+    "composes multilingual script → triggers call → parses <Gather> ASR";
+    "priority score: elderly · disabled · livestock · mobility";
+    "state machine: PENDING → CALLING → ANSWERED / NO_ANSWER → ESCALATED"
+  • "Agent B · TRIAGER (inbound)" with bullets:
+    "WhatsApp voice note → Whisper / ElevenLabs STT → text";
+    "LLM extraction: intent, location, severity, needs, people count";
+    "dedupe + merge against open tickets";
+    "writes structured relief ticket + geotag to PostgreSQL"
+  • "Persistent household memory" with bullets:
+    "sandbox files (per-household JSON) survive between runs";
+    "second warning informed by the first · season-long continuity";
+    "mirror in PostgreSQL for the dashboard";
+    "Agent37 instance ID + dashboard screenshot = prize verification"
+
+LAYER 4 — "4 · VOICE & TELEPHONY" (teal accents, 4 cards):
+  • "ElevenLabs TTS / STT — Assamese · Bodo · Bengali · Hindi · English ·
+    Creator / Pro / Scale credit tracks"
+  • "Twilio Voice IVR — outbound PSTN call · <Gather> speech recognition ·
+    DTMF fallback · Status Callbacks"
+  • "Twilio WhatsApp — inbound voice notes · outbound confirmation, shelter
+    and helpline messages"
+  • "Escalation policy engine — 3 attempts with exponential backoff →
+    gaon-bura SMS → DDMA control-room ticket"
+
+LAYER 5 — "5 · APPLICATION & STATE" (blue accents, 4 cards):
+  • "FastAPI service — async Python · pydantic · REST + webhooks · deployed
+    on Nodus compute (YC F26)"
+  • "PostgreSQL 15 + PostGIS — households · revenue_circles · risk_events ·
+    calls · tickets · village geometry"
+  • "Redis — retry / escalation queue · idempotency keys · per-second rate limits"
+  • "Render + Render Workflows — web hosting + durable background jobs:
+    ingest cron, retries, escalation fan-out"
+
+LAYER 6 — "6 · RELIEF OPS DASHBOARD" (amber accents, 3 cards):
+  • "Live call log — answered / no-answer / unreachable · Twilio Status
+    Callbacks → Socket.IO push"
+  • "Priority board + map — household priority list · revenue-circle layers ·
+    relief-camp and helpline overlays"
+  • "Ticket queue + analytics — triaged distress tickets · confirmed-reach
+    rate · median bulletin → confirmed minutes"
+
+RIGHT-HAND RAIL — "CROSS-CUTTING" (spans all six layers):
+  • "Observability — structlog JSON · OpenTelemetry traces · call recordings ·
+    Sentry · Grafana dashboard"
+  • "Security & privacy — consent registry · household IDs only in LLM
+    prompts (no PII) · TLS 1.3 · dashboard RBAC"
+  • "Safety — consented numbers only · ASDMA / CWC cited as the warning
+    authority · human-in-the-loop on escalation"
+  • "Verification artefacts — Agent37 instance ID + dashboard screenshot ·
+    Render service ID · Nodus deployment manifest"
+  • "Sponsor tracks — Agent37 ₹1,000 cash + $10 credits per verified project
+    (no attendance needed) · Nodus Challenge ₹50k / ₹30k / ₹20k · ElevenLabs
+    voice tracks · Best Use of Render Workflows · Hackyard $100 LLM credits
+    per selected project"
+
+FOOTER BAR:
+"BaanMitra · 'Every existing system forecasts the flood. None of them talks
+to the villager.' — Hackyard Build 2026 · IIT Guwahati · 24–25 October 2026"
+
+Every label must be legible, correctly spelled, and exactly as written above.
+Crisp 8K, vector-clean edges, evenly spaced cards, consistent type sizes.
+---------------------------------------------------------------------------
+
+
+================================================================================
+SECTION 2 — TOOL-SPECIFIC SETTINGS
+================================================================================
+
+MIDJOURNEY v6 / v7
+  Append to the Section-1 prompt:
+    --ar 16:9 --style raw --stylize 150 --v 6.1
+  Tip: MJ garbles long text. Use Section 4 (Mermaid) for the real labels, and
+  use MJ only for a background/hero illustration.
+
+DALL·E 3 (ChatGPT / Bing Image Creator)
+  Preface the prompt with: "Create a clean vector-style infographic diagram.
+  Render ALL text exactly as written, using correct spelling:"
+  Ask for 1792×1024 (landscape). If labels come out wrong, reply:
+  "Re-render, fixing the spelling of all labels to match the list exactly."
+
+IDEOGRAM 2.0 / FLUX 1.1 PRO (best for legible text in images)
+  Paste Section 1 as-is, 16:9, "Graphic design / infographic" style preset.
+  Ideogram handles long in-image text best of all current models.
+
+LEONARDO.AI
+  Model: Leonardo Kino XL or Flux Dev · Alchemy OFF · Contrast HIGH ·
+  Guidance 6–7 · 16:9.
+
+NEGATIVE PROMPT (where supported)
+  photorealistic, 3d render, gradient, drop shadow, neon glow, blurry text,
+  misspelled labels, watermark, stock photo, hand-drawn, cluttered,
+  cropped boxes, overlapping text.
+
+
+================================================================================
+SECTION 3 — REFINEMENT PROMPT (if the model drops or mangles boxes)
+================================================================================
+"Re-render the same diagram. Keep every layer band, every card and every
+bullet exactly as listed. Do not merge, rename, summarise or drop any
+component. Text must be sharp and correctly spelled. Keep the dark navy
+background, teal and amber accents, and the downward data-flow arrows with
+amber return arrows."
+
+
+================================================================================
+SECTION 4 — DETERMINISTIC ALTERNATIVE (guaranteed-perfect text)
+================================================================================
+If the image model garbles labels, skip it entirely and render this in
+Mermaid (mermaid.live), draw.io, Excalidaya or Figma — text is always crisp.
+
+--- OPTION A: MERMAID (paste at https://mermaid.live) -----------------------
+flowchart TB
+    subgraph L1["1 · DATA & SIGNAL SOURCES"]
+        A1["FLEWS bulletins<br/>ASDMA / NESAC"]
+        A2["CWC Level Forecast"]
+        A3["CWC 7-day Advisory"]
+        A4["IMD rainfall + radar"]
+        A5["Open-Meteo / Flood Hub"]
+    end
+    subgraph L2["2 · INGESTION & NORMALISATION"]
+        B1["FLEWS parser<br/>BeautifulSoup + pdfplumber"]
+        B2["Feed pollers<br/>httpx async"]
+        B3["RiskEvent normaliser"]
+        B4["CAP listener<br/>NDMA SACHET"]
+    end
+    subgraph L3["3 · INTELLIGENCE — AGENT37 SANDBOXES"]
+        C1["Agent A · WATCHDOG<br/>outbound · cron 15 min"]
+        C2["Agent B · TRIAGER<br/>inbound · WhatsApp"]
+        C3["Persistent household<br/>memory"]
+    end
+    subgraph L4["4 · VOICE & TELEPHONY"]
+        D1["ElevenLabs TTS / STT"]
+        D2["Twilio Voice IVR"]
+        D3["Twilio WhatsApp"]
+        D4["Escalation policy engine"]
+    end
+    subgraph L5["5 · APPLICATION & STATE"]
+        E1["FastAPI on Nodus compute"]
+        E2["PostgreSQL 15 + PostGIS"]
+        E3["Redis queue"]
+        E4["Render + Workflows"]
+    end
+    subgraph L6["6 · RELIEF OPS DASHBOARD"]
+        F1["Live call log"]
+        F2["Priority board + map"]
+        F3["Ticket queue + analytics"]
+    end
+    A1 --> B1
+    A2 --> B2
+    A3 --> B2
+    A4 --> B2
+    A5 --> B2
+    B1 --> B3
+    B2 --> B3
+    B3 --> C1
+    C1 --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 --> C2
+    C2 --> E2
+    C1 --> E2
+    E1 --> F1
+    E2 --> F2
+    E2 --> F3
+    E4 --> C1
+    C2 --> F3
+    D3 -->|"voice notes"| C2
+
+--- OPTION B: DRAW.IO / EXCALIDRAW ------------------------------------------
+Build six stacked rounded rectangles (one per layer) with a 1.9-inch label
+strip on the left; inside each, add the cards listed in Section 1 at the
+sizes given below. Style: canvas background #0A1628, cards #1C3249 fill with
+2px stroke (teal #2DD4BF for layers 2 and 4, blue #60A5FA for layers 1 and 5,
+amber #FBBF24 for layers 3 and 6), text #FFFFFF bold 21px titles with
+#93A4BC 15px captions. Add straight arrows between layers, teal downward and
+amber upward, each with a small italic label ("poll · 15 min", "RiskEvent",
+"trigger", "script + TTS", "ASR + replies", "state + tickets",
+"officer actions", "agent state").
+
+
+================================================================================
+SECTION 5 — STYLE TOKENS (reuse for a consistent set of diagrams)
+================================================================================
+  background   #0A1628      navy black
+  panel        #13233C      layer band fill
+  card         #1C3249      component card fill
+  teal         #2DD4BF      primary accent (ingestion, voice)
+  amber        #FBBF24      secondary accent (agents, dashboard)
+  blue         #60A5FA      tertiary accent (sources, state)
+  white        #FFFFFF      titles
+  muted        #93A4BC      captions
+  font         Segoe UI / Inter / IBM Plex Sans (bold titles, regular captions)
+  grid         24px gutters, 12px card radius, 2px strokes, no shadows
+
+Use the same tokens for the 9-slide pitch deck so the deck, the architecture
+image and the Devpost submission all look like one product.
