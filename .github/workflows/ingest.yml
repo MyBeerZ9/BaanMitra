@@ -1,0 +1,23 @@
+# Free 15-minute ingest cron (GitHub Actions - unlimited minutes on public repos).
+# Pings the deployed Render free service, which runs one WATCHDOG cycle.
+name: baanmitra-ingest
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"      # every 15 minutes, monsoon season
+  workflow_dispatch:            # allow manual runs from the Actions tab
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wake the free Render service
+        run: |
+          curl -fsS --max-time 60 \
+            "${{ secrets.BAANMITRA_URL }}/healthz" || echo "cold start, continuing"
+
+      - name: Run one flood-alert cycle
+        run: |
+          curl -fsS --max-time 300 -X POST \
+            "${{ secrets.BAANMITRA_URL }}/cron/ingest?token=${{ secrets.CRON_TOKEN }}"

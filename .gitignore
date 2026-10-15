@@ -1,0 +1,35 @@
+# --- secrets: NEVER commit .env ---
+.env
+*.env
+!.env.example
+
+# --- python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- generated at runtime ---
+audio_cache/
+audio_cache_*/
+*.mp3
+*.wav
+*.txt.orig
+
+# --- optional heavy local models (download separately) ---
+external/Indic-TTS/
+external/whisper.cpp/
+
+# --- editors / os ---
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+
+# --- logs ---
+*.log
+logs/

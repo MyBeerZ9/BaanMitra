@@ -1,0 +1,143 @@
+<!--
+  BaanMitra relief-ops dashboard.
+  Free stack: MapLibre GL + OpenStreetMap / CARTO tiles (no key, no card),
+  vanilla JS, FastAPI JSON endpoint, 8-second polling.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BaanMitra — Relief Ops Dashboard</title>
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --bg:#0A1628; --panel:#13233C; --card:#1C3249; --teal:#2DD4BF;
+    --amber:#FBBF24; --white:#fff; --muted:#93A4BC; --red:#F87171; --blue:#60A5FA;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--white);
+       font-family:"Segoe UI",Inter,system-ui,sans-serif}
+  header{padding:16px 22px;border-bottom:1px solid #28425E;display:flex;
+         align-items:baseline;gap:16px;flex-wrap:wrap}
+  header h1{margin:0;font-size:22px;color:var(--teal)}
+  header span{color:var(--muted);font-size:13px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+         gap:12px;padding:16px 22px}
+  .stat{background:var(--panel);border:1px solid #28425E;border-radius:12px;padding:12px 14px}
+  .stat b{display:block;font-size:26px}
+  .stat small{color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;padding:0 22px 22px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid #28425E;border-radius:12px;overflow:hidden}
+  .panel h2{margin:0;padding:12px 14px;font-size:14px;letter-spacing:.08em;
+            text-transform:uppercase;color:var(--teal);border-bottom:1px solid #28425E}
+  #map{height:340px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #22384f}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
+  .pill{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .answered{background:rgba(45,212,191,.15);color:var(--teal)}
+  .no_answer{background:rgba(251,191,36,.15);color:var(--amber)}
+  .escalated{background:rgba(248,113,113,.15);color:var(--red)}
+  .critical{background:rgba(248,113,113,.15);color:var(--red)}
+  .high{background:rgba(251,191,36,.15);color:var(--amber)}
+  .medium{background:rgba(96,165,250,.15);color:var(--blue)}
+  footer{padding:0 22px 22px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>BaanMitra বানমিত্ৰা</h1>
+  <span>Relief Ops Dashboard · last mile of India's flood early warning</span>
+  <span style="margin-left:auto">Cost of this stack: ₹0</span>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>Live call log — revenue circles of Assam</h2>
+    <div id="map"></div>
+  </div>
+  <div class="panel">
+    <h2>Alert calls</h2>
+    <table><thead><tr><th>Circle</th><th>Phone</th><th>Status</th><th>Priority</th></tr></thead>
+    <tbody id="calls"></tbody></table>
+  </div>
+</div>
+
+<div class="panel" style="margin:0 22px 22px">
+  <h2>Distress tickets (inbound WhatsApp voice notes)</h2>
+  <table><thead><tr><th>Intent</th><th>Severity</th><th>Location</th><th>Needs</th>
+    <th>Transcript</th></tr></thead><tbody id="tickets"></tbody></table>
+</div>
+
+<footer>
+  Warnings are issued by <b>ASDMA</b> and <b>CWC</b>; BaanMitra only delivers them.
+  Only consented households are contacted. Helpline 1079 · NDRF 9711077372.
+</footer>
+
+<script>
+const CIRCLE_POINTS = {
+  Bongaigaon:[26.4769,90.5640], Sidli:[26.4833,90.0667], Goalpara:[26.1700,90.6200],
+  Barpeta:[26.3200,91.0000], Nalbari:[26.4400,91.4400], Lakhimpur:[27.2300,94.1100],
+  Dhemaji:[27.4800,94.5800], Morigaon:[26.2500,92.3400], Dhubri:[26.0200,89.9800],
+  Sonitpur:[26.6300,92.8000], Sivasagar:[26.9800,94.6300], Silchar:[24.8300,92.7800]
+};
+
+const map = new maplibregl.Map({
+  container:'map',
+  style:{version:8, sources:{
+      osm:{type:'raster', tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+           tileSize:256, attribution:'© OpenStreetMap contributors'}},
+    layers:[{id:'osm', type:'raster', source:'osm'}]},
+  center:[91.7,26.4], zoom:7
+});
+map.addControl(new maplibregl.NavigationControl(),'top-right');
+const markers = {};
+
+function render(data){
+  const s = data.stats;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><b style="color:var(--teal)">${s.reach_rate*100|0}%</b><small>confirmed reach</small></div>
+    <div class="stat"><b>${s.total_calls}</b><small>alert calls</small></div>
+    <div class="stat"><b style="color:var(--amber)">${s.escalated}</b><small>escalated</small></div>
+    <div class="stat"><b style="color:var(--red)">${s.open_tickets}</b><small>open tickets</small></div>`;
+
+  document.getElementById('calls').innerHTML = data.calls.map(c=>{
+    const cls = c.status==='answered'?'answered':c.status==='escalated'?'escalated':'no_answer';
+    const p = (c.priority_score||'—');
+    return `<tr><td>${c.revenue_circle||'—'}</td><td>${c.phone}</td>
+      <td><span class="pill ${cls}">${c.status}</span></td><td>${p}</td></tr>`;
+  }).join('') || '<tr><td colspan="4">no calls yet — run the watchdog</td></tr>';
+
+  document.getElementById('tickets').innerHTML = data.tickets.map(t=>`
+    <tr><td>${t.intent}</td><td><span class="pill ${t.severity}">${t.severity}</span></td>
+    <td>${t.location_text||'—'}</td><td>${(t.needs||[]).join(', ')||'—'}</td>
+    <td>${(t.transcript||'').slice(0,90)}</td></tr>`).join('')
+    || '<tr><td colspan="5">no tickets yet</td></tr>';
+
+  Object.entries(CIRCLE_POINTS).forEach(([name,[lat,lon]])=>{
+    const active = data.calls.some(c=>c.revenue_circle===name && c.status!=='answered');
+    if(active && !markers[name]){
+      const el = document.createElement('div');
+      el.style.cssText='width:14px;height:14px;border-radius:50%;background:#FBBF24;'+
+                       'box-shadow:0 0 0 4px rgba(251,191,36,.25)';
+      markers[name]=new maplibregl.Marker({element:el}).setLngLat([lon,lat])
+        .setPopup(new maplibregl.Popup().setText(`${name}: pending/unanswered alert`))
+        .addTo(map);
+    }
+  });
+}
+
+async function refresh(){
+  try{
+    const r = await fetch('/dashboard/data');
+    if(r.ok) render(await r.json());
+  }catch(e){ /* API not running yet */ }
+}
+refresh(); setInterval(refresh, 8000);
+</script>
+</body>
+</html>

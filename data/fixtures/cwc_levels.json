@@ -1,0 +1,14 @@
+[
+  {"station": "Brahmaputra@Guwahati", "river": "Brahmaputra", "circle": "Bongaigaon",
+   "district": "Kamrup", "level_m": 50.60, "danger_level_m": 49.17},
+  {"station": "Brahmaputra@Dhubri", "river": "Brahmaputra", "circle": "Dhubri",
+   "district": "Dhubri", "level_m": 30.10, "danger_level_m": 28.50},
+  {"station": "Beki@Barpeta", "river": "Beki", "circle": "Barpeta",
+   "district": "Barpeta", "level_m": 47.20, "danger_level_m": 47.00},
+  {"station": "Manas@Barpeta", "river": "Manas", "circle": "Barpeta",
+   "district": "Barpeta", "level_m": 48.90, "danger_level_m": 47.50},
+  {"station": "Jia Bharali@Tezpur", "river": "Jia Bharali", "circle": "Sonitpur",
+   "district": "Sonitpur", "level_m": 66.20, "danger_level_m": 64.50},
+  {"station": "Kopili@Dharamtul", "river": "Kopili", "circle": "Morigaon",
+   "district": "Morigaon", "level_m": 62.80, "danger_level_m": 61.00}
+]
