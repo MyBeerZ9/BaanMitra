@@ -20,7 +20,12 @@ from ..models import RiskEvent, Severity
 log = logging.getLogger("baanmitra.flews")
 
 URL = "https://asdma.assam.gov.in/resource/flood-alerts"
-FIXTURE = os.path.join("data", "fixtures", "flews_sample.html")
+
+# src/baanmitra/sources/flews.py -> repo root, so the fixture is found no matter
+# which directory the process was started from (local shell, CI, Render).
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))))
+FIXTURE = os.path.join(_ROOT, "data", "fixtures", "flews_sample.html")
 
 _SEV_WORDS = {
     "very high": Severity.VERY_HIGH, "high": Severity.HIGH,

@@ -40,18 +40,26 @@ tracks (Agent37, Nodus) that are *deliberately excluded* because they need paid 
 # 1. create the virtualenv and install every dependency (all free/open-source)
 .\setup.ps1
 
-# 2. add your free-tier keys
+# 2. prove this machine meets the requirements, and see which keys are still missing
+.\.venv\Scripts\python.exe doctor.py
+
+# 3. add your free-tier keys
 notepad .env
 
-# 3. seed the database (12 revenue circles + synthetic households, no real PII)
+# 4. seed the database (12 revenue circles + synthetic households, no real PII)
 .\.venv\Scripts\python.exe -m baanmitra.seed
 
-# 4. run the API + dashboard locally
+# 5. run the API + dashboard locally
 .\.venv\Scripts\python.exe -m baanmitra.api.main
 
-# 5. open the dashboard
+# 6. open the dashboard
 start http://localhost:8000/dashboard/
 ```
+
+**No keys yet? That is fine** — the pipeline already runs offline (live data
+collection, 5-language alert templates, gTTS audio, the consent gate). Adding
+keys upgrades it to real phone calls and real transcripts; see
+[docs/SETUP.md](docs/SETUP.md) for exactly what to fix and in what order.
 
 Then trigger one full flood-alert cycle end to end:
 
@@ -65,8 +73,11 @@ Then trigger one full flood-alert cycle end to end:
 
 1. **Groq** — https://console.groq.com/keys — email only, no card. Gives you the LLM *and*
    Whisper STT in one key.
-2. **Supabase** — https://supabase.com — new project (free). Settings → Database → connection
-   string. In the SQL editor run the DDL printed by `python -m baanmitra.db --init`.
+2. **Supabase** — https://supabase.com — new **Free** project, no card. In the
+   **SQL Editor** run the DDL printed by `python -m baanmitra.db --init` (its first
+   line enables **PostGIS**, which Supabase pre-installs on every plan). Then click
+   **Connect → Session pooler** and copy that string — *not* the direct one, which is
+   IPv6-only on the free plan. Gotchas and the exact string format: [docs/SETUP.md](docs/SETUP.md).
 3. **Upstash** — https://upstash.com — free Redis, copy the `rediss://` URL.
 4. **Bhashini** — https://bhashini.gov.in — register, create an API key. Optional but this is
    what gives you real **Assamese and Bodo** voices with zero local compute.
@@ -126,9 +137,13 @@ BaanMitra/
 │   │   └── triager.py         # AGENT B — inbound distress triage agent
 │   ├── api/main.py            # FastAPI: Twilio webhooks, cron hook, dashboard data
 │   └── seed.py                # seed circles + synthetic households (no real PII)
+├── doctor.py                  # system-requirements proof + missing-key checklist
+├── smoke_test.py              # 9 offline checks, no keys needed
+├── pyproject.toml             # `pip install -e .` makes `python -m baanmitra.*` work
 ├── dashboard/index.html       # MapLibre + OSM dashboard (free tiles)
 ├── data/revenue_circles.csv   # 12 flood-prone circles with coordinates
-├── .github/workflows/ingest.yml   # free 15-minute cron
+├── docs/                      # SETUP.md · technical_architecture.md · architecture.png
+├── .github/workflows/ingest.yml   # free 15-minute cron (dry-run in CI, live when deployed)
 └── COSTS.md                   # exact free-tier limits + what is deliberately excluded
 ```
 
@@ -154,6 +169,9 @@ BaanMitra/
 
 ## Documentation
 
+- **[docs/SETUP.md](docs/SETUP.md)** — what to fix before it runs: every key, the Supabase
+  session-pooler string, the Twilio trial limits, the public-URL step, and troubleshooting.
 - **[COSTS.md](COSTS.md)** — every free tier, its limit, and the two paid sponsor tracks excluded.
-- **[../Downloads/baanmitra_technical_architecture.md](../Downloads/baanmitra_technical_architecture.md)** —
+- **[docs/technical_architecture.md](docs/technical_architecture.md)** —
   full architecture spec, schemas, agent pseudocode and the 24-hour build plan.
+- **[docs/architecture.png](docs/architecture.png)** — the system architecture diagram.

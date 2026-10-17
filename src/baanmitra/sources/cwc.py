@@ -21,7 +21,12 @@ log = logging.getLogger("baanmitra.cwc")
 
 FFS_URL = "https://ffs.india-water.gov.in/"
 AFF_URL = "https://aff.india-water.gov.in/"
-FIXTURE = os.path.join("data", "fixtures", "cwc_levels.json")
+
+# src/baanmitra/sources/cwc.py -> repo root, so the fixture is found no matter
+# which directory the process was started from (local shell, CI, Render).
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))))
+FIXTURE = os.path.join(_ROOT, "data", "fixtures", "cwc_levels.json")
 
 # Reference danger levels are published per station by CWC. A small sample is
 # bundled so the demo is self-contained.
